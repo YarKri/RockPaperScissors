@@ -39,6 +39,7 @@ def handle_play_request():
         del game_lst[last_sid]
         return
 
+    # a comment
     if last_sid in game_lst and len(game_lst[last_sid]) == 1:
         session_id = last_sid
     else:
