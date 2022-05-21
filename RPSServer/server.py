@@ -44,15 +44,21 @@ def handle_play_request():
     else:
         session_id = int(time.time()*100)
         last_sid = session_id
-    start_thread = threading.Thread(target=start_websocket_server)
+    start_thread = threading.Thread(target=thread_websocket_server)
     start_thread.start()
     return Response(str(session_id), status=200)
 
 
-def start_websocket_server():
-    start_server = websockets.serve(init_game, "localhost", 8889)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()  # ?
+def thread_websocket_server():
+    asyncio.run(start_websocket_server())
+
+
+async def start_websocket_server():
+    # start_server = websockets.serve(init_game, "localhost", 8890)
+    async with websockets.serve(init_game, "localhost", 8890):
+        await asyncio.Future()
+    # asyncio.get_event_loop().run_until_complete(start_server)
+    # asyncio.get_event_loop().run_forever()  # ?
 
 
 async def init_game(websocket):
