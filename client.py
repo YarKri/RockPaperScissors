@@ -231,17 +231,14 @@ class GridLayoutApp(App):
         self.layout_matrix[1][1].bind(on_press=self.play)
         self.layout_matrix[2][1].opacity = 1
 
-    def play(self, button=False):
-        asyncio.get_event_loop().run_until_complete(self.queue_game())
-
-    async def queue_game(self):
+    async def play(self, button=False):
         response = requests.get(f"{SERVER_URL}/play", params={"quit": False}).text
         sid = response
         self.layout_matrix[2][0].text = "Searching for game..."
         self.layout_matrix[1][1].disabled = True
         self.layout_matrix[1][0].bind(on_press=self.quit_while_queueing)
         self.layout_matrix[1][2].bind(on_press=self.quit_while_queueing)
-        gme = threading.Thread(target=self.game, args=(sid,))
+        gme = threading.Thread(target=asyncio.get_event_loop().run_until_complete(self.game(sid)))
         gme.start()
 
     async def game(self, sid):
@@ -252,7 +249,7 @@ class GridLayoutApp(App):
                 if msg == 'start':
                     self.layout_matrix[2][2].settings_sample = Switch(active=True)
                     self.layout_matrix[1][0].disabled = True
-                    self.layout_matrix[1][2].disabled = True
+                    self.layout_matrix[1][2].disabled = True            # this wont work, gotta put outside function
                     self.layout_matrix[2][0].text = ""
                     cap = cv2.VideoCapture(0)
                     tracker = HandTracking()
