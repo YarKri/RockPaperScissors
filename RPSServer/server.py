@@ -3,12 +3,11 @@ import websockets
 import database_functions
 import time
 import asyncio
+import logging
 import threading
 from game import Game
+import os
 app = Flask(__name__)
-
-game_lst = {}    # {[[websocket1, gesture1, username1],[websocket2, gesture2, username2]]...}
-last_sid = 0
 
 PORT = 8889
 WEBSOCKET_PORT = 8890
@@ -18,8 +17,10 @@ WEBSOCKET_PORT = 8890
 def login():
     user = request.args.get('user', '')
     password = request.args.get('password', '')
+    logging.info(f'Login request for {user}')
     if database_functions.login(user, password):
         return Response(status=200)
+    logging.info(f'Login request failed for {user}')
     return Response("Not Found", status=404)
 
 
@@ -38,16 +39,20 @@ def handle_play_request():
     global last_sid
     global game_lst
     bool_quit = request.args.get('quit', '')
+    app.logger.info(f'handle_play_request: {last_sid=}, in game_lst: {last_sid in game_lst}')
     if bool_quit == 'True':
+        app.logger.info(f'quit is True, removing {last_sid}')
+        assert last_sid is not None
         game_lst[last_sid][0].close()
         del game_lst[last_sid]
         return
-
     if last_sid in game_lst and len(game_lst[last_sid]) == 1:
         session_id = last_sid
+        app.logger.info(f'Opponent matched to a waiting user, {last_sid=}, {session_id=}')
     else:
         session_id = int(time.time()*100)
-        last_sid = session_id
+        last_sid = str(session_id)
+        app.logger.info(f'User is waiting for opponent, {session_id=}')
 
     return Response(str(session_id), status=200)
 
@@ -57,11 +62,8 @@ def thread_websocket_server():
 
 
 async def start_websocket_server():
-    # start_server = websockets.serve(init_game, "localhost", 8890)
     async with websockets.serve(gme, "localhost", WEBSOCKET_PORT):
         await asyncio.Future()
-    # asyncio.get_event_loop().run_until_complete(start_server)
-    # asyncio.get_event_loop().run_forever()
 
 
 async def gme(websocket):
@@ -77,18 +79,19 @@ async def gme(websocket):
                 pid = 0
             else:
                 game_lst[sid].append([websocket])
-                await game_lst[sid][0].send("start")
-                await game_lst[sid][1].send("start")
+                await game_lst[sid][0][0].send("start")
+                await game_lst[sid][1][0].send("start")
                 pid = 1
             init = False
+
         elif countdown == -1:
             img = await websocket.recv()
-            await game_lst[sid][1-pid].send(img)
+            await game_lst[sid][1-pid][0].send(img)
 
             gesture = await websocket.recv()
             game_lst[sid][pid].append(gesture)
             username = await websocket.recv()
-            game_lst[sid][pid].append(gesture)
+            game_lst[sid][pid].append(username)
             opp_gesture = game_lst[sid][1-pid][1]
             opp_username = game_lst[sid][1-pid][2]
 
@@ -144,9 +147,11 @@ def find_game(websocket):
 '''     # do not use?
 
 if __name__ == "__main__":
+    game_lst = {}  # {sid: [[websocket1, gesture1, username1],[websocket2, gesture2, username2]]...}
+    last_sid = None
     try:
         ws_server_thread = threading.Thread(target=thread_websocket_server)
         ws_server_thread.start()
-        app.run(debug=True, host='0.0.0.0', port=8889)
+        app.run(debug=True, use_reloader=False, host='0.0.0.0', port=PORT)
     except Exception as e:
-        print(f'unable to open port {e}')
+        print(f'{e}')

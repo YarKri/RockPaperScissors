@@ -19,6 +19,7 @@ import RockPaperScissors
 from kivy.core.window import Window
 import asyncio
 import threading
+import logging
 
 kivy.require('1.11.1')
 pygame.mixer.init()
@@ -244,16 +245,20 @@ class GridLayoutApp(App):
     def play_thread(self, sid):
         asyncio.run(self.game(sid))
 
+    def ui_game_start_thread(self):
+        self.layout_matrix[1][0].disabled = True
+        self.layout_matrix[1][2].disabled = True
+        self.layout_matrix[2][0].text = ""
+
     async def game(self, sid):
         try:
             async with websockets.connect(WEBSOCKET_SERVER_URL) as ws:
                 ws.send(sid)
                 msg = await ws.recv()
                 if msg == 'start':
-                    self.layout_matrix[2][2].settings_sample = Switch(active=True)
-                    self.layout_matrix[1][0].disabled = True
-                    self.layout_matrix[1][2].disabled = True            # this wont work, gotta put outside function
-                    self.layout_matrix[2][0].text = ""
+                    logging.info("Game started")
+                    ui = threading.Thread(target=self.ui_game_start_thread)
+                    ui.start()
                     cap = cv2.VideoCapture(0)
                     tracker = HandTracking()
                     while True:
@@ -347,13 +352,13 @@ class GridLayoutApp(App):
                     ws.close()
         except Exception as e:
             print(e)
-            self.layout_matrix[2][0].text = " Server down,\r\ntry again later."
-            ws.close()
-            self.layout_matrix[1][0].disabled = False
-            self.layout_matrix[1][1].disabled = False
-            self.layout_matrix[1][2].disabled = False
-            self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
-            self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
+            self.layout_matrix[2][0].text = " Error, try\r\nagain later."
+        ws.close()
+        self.layout_matrix[1][0].disabled = False
+        self.layout_matrix[1][1].disabled = False
+        self.layout_matrix[1][2].disabled = False
+        self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
+        self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
 
     def compress_img(self, cv_img, quality=95):
         buffer = BytesIO()
