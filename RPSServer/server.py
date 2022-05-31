@@ -119,7 +119,8 @@ async def gme(websocket):
         else:
             # img = await websocket.recv()
             img = message
-            await game_lst[sid][1-pid].send(img)
+
+            await game_lst[sid][1-pid][0].send(img)
             frame_counter += 1
 
 '''
