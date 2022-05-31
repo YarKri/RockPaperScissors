@@ -8,6 +8,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.graphics import Color, Rectangle
+from kivy.graphics.texture import Texture
+from kivy.clock import Clock
 import pygame
 import requests
 import websockets
@@ -253,80 +255,40 @@ class GridLayoutApp(App):
     async def game(self, sid):
         try:
             async with websockets.connect(WEBSOCKET_SERVER_URL) as ws:
-                ws.send(sid)
+                await ws.send(sid)
                 msg = await ws.recv()
-                if msg == 'start':
+                if msg == "start":
+                    blur = False
+                    cntdwn = 5
                     logging.info("Game started")
                     ui = threading.Thread(target=self.ui_game_start_thread)
                     ui.start()
-                    cap = cv2.VideoCapture(0)
+                    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
                     tracker = HandTracking()
                     while True:
                         success, img = cap.read()
+                        landmark_lst = tracker.find_lm_positions(img)
+                        if landmark_lst and blur:
+                            RockPaperScissors.blur_hand(img, landmark_lst)
                         RockPaperScissors.put_username("", img)
+                        RockPaperScissors.put_pos(cntdwn, img)
                         img = self.compress_img(img)
-                        ws.send(img)
+                        await ws.send(img)
                         msg = await ws.recv()
                         if msg == "4":
-                             break
-                        opp_img = self.decompress_img(msg)
-                        cv2.imshow("Rock Paper Scissors", opp_img)
-                    while True:
-                        success, img = cap.read()
-                        landmark_lst = tracker.find_lm_positions(img)
-                        if landmark_lst:
-                            RockPaperScissors.blur_hand(img, landmark_lst)
-                        RockPaperScissors.put_username("", img)
-                        RockPaperScissors.put_pos(4, img)
-                        img = self.compress_img(img)
-                        ws.send(img)
-                        msg = await ws.recv()
-                        if msg == "3":
-                            break
-                        opp_img = self.decompress_img(msg)
-                        cv2.imshow("Rock Paper Scissors", opp_img)
-                    while True:
-                        success, img = cap.read()
-                        landmark_lst = tracker.find_lm_positions(img)
-                        if landmark_lst:
-                            RockPaperScissors.blur_hand(img, landmark_lst)
-                        RockPaperScissors.put_username("", img)
-                        RockPaperScissors.put_pos(3, img)
-                        img = self.compress_img(img)
-                        ws.send(img)
-                        msg = await ws.recv()
+                            blur = True
+                            cntdwn = 4
+                        elif msg == "3":
+                            cntdwn = 3
                         if msg == "2":
-                             break
-                        opp_img = self.decompress_img(msg)
-                        cv2.imshow("Rock Paper Scissors", opp_img)
-                    while True:
-                        success, img = cap.read()
-                        landmark_lst = tracker.find_lm_positions(img)
-                        if landmark_lst:
-                            RockPaperScissors.blur_hand(img, landmark_lst)
-                        RockPaperScissors.put_username("", img)
-                        RockPaperScissors.put_pos(2, img)
-                        img = self.compress_img(img)
-                        ws.send(img)
-                        msg = await ws.recv()
+                            cntdwn = 2
                         if msg == "1":
-                            break
-                        opp_img = self.decompress_img(msg)
-                        cv2.imshow("Rock Paper Scissors", opp_img)
-                    while True:
-                        success, img = cap.read()
-                        landmark_lst = tracker.find_lm_positions(img)
-                        if landmark_lst:
-                            RockPaperScissors.blur_hand(img, landmark_lst)
-                        RockPaperScissors.put_username("", img)
-                        RockPaperScissors.put_pos(1, img)
-                        img = self.compress_img(img)
-                        ws.send(img)
-                        msg = await ws.recv()
+                            cntdwn = 1
                         if msg == "0":
                             break
-                        opp_img = self.decompress_img(msg)
-                        cv2.imshow("Rock Paper Scissors", opp_img)
+                        else:
+                            opp_img = self.decompress_img(msg)
+                            cv2.imshow("Rock Paper Scissors", opp_img)
 
                     success, img = cap.read()
                     img = tracker.draw_hands(img)
@@ -338,22 +300,21 @@ class GridLayoutApp(App):
                         gesture = "No gesture was made!"
                     cv2.putText(img, gesture, (100, 400), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
                     img = self.compress_img(img)
-                    ws.send(img)
+                    await ws.send(img)
                     opp_img = self.decompress_img(await ws.recv())
-                    ws.send(gesture)
-                    ws.send(user)
+                    await ws.send(gesture)
+                    await ws.send(user)
                     winner = await ws.recv()
                     for frame in range(10):
                         cv2.imshow("Rock Paper Scissors", opp_img)
                     cv2.putText(opp_img, f'{winner} wins!', (10, 200), cv2.FONT_ITALIC, 4, (0, 0, 255), 5)
                     for frame in range(20):
                         cv2.imshow("Rock Paper Scissors", opp_img)
-                    # cv2.destroyAllWindows()
-                    ws.close()
+                    await ws.close()
         except Exception as e:
             print(e)
             self.layout_matrix[2][0].text = " Error, try\r\nagain later."
-        ws.close()
+        await ws.close()
         self.layout_matrix[1][0].disabled = False
         self.layout_matrix[1][1].disabled = False
         self.layout_matrix[1][2].disabled = False

@@ -79,6 +79,8 @@ def put_username(username, img):
 
 
 def put_pos(num, img):
+    if num == 5:
+        return
     if num == 4:
         pos = "Rock"
     elif num == 3:

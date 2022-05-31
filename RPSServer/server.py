@@ -43,7 +43,7 @@ def handle_play_request():
     if bool_quit == 'True':
         app.logger.info(f'quit is True, removing {last_sid}')
         assert last_sid is not None
-        game_lst[last_sid][0].close()
+        game_lst[last_sid][0][0].close()
         del game_lst[last_sid]
         return
     if last_sid in game_lst and len(game_lst[last_sid]) == 1:
@@ -85,7 +85,8 @@ async def gme(websocket):
             init = False
 
         elif countdown == -1:
-            img = await websocket.recv()
+            # img = await websocket.recv()
+            img = message
             await game_lst[sid][1-pid][0].send(img)
 
             gesture = await websocket.recv()
@@ -96,27 +97,28 @@ async def gme(websocket):
             opp_username = game_lst[sid][1-pid][2]
 
             if gesture == opp_gesture:
-                websocket.send("Tie, nobody")
+                await websocket.send("Tie, nobody")
             elif gesture == "No gesture was made!":
-                websocket.send(opp_username)
+                await websocket.send(opp_username)
                 database_functions.add_loss(username)
             elif opp_gesture == "No gesture was made!":
-                websocket.send(username)
+                await websocket.send(username)
                 database_functions.add_win(username)
             elif gesture == 'Rock' and opp_gesture == 'Paper' or gesture == 'Scissors' and opp_gesture == 'Rock' or gesture == 'Paper' and opp_gesture == 'Scissors':
-                websocket.send(opp_username)
+                await websocket.send(opp_username)
                 database_functions.add_loss(username)
             else:
-                websocket.send(username)
+                await websocket.send(username)
                 database_functions.add_win(username)
 
             # websocket.close()
         elif frame_counter == 10:
             frame_counter = 0
             countdown -= 1
-            websocket.send(countdown)
+            await websocket.send(countdown)
         else:
-            img = await websocket.recv()
+            # img = await websocket.recv()
+            img = message
             await game_lst[sid][1-pid].send(img)
             frame_counter += 1
 
