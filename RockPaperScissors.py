@@ -90,28 +90,3 @@ def put_pos(num, img):
     else:
         pos = "Shoot!"
     cv2.putText(img, pos, (img.shape[1]//2, img.shape[0]//2), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
-
-
-def main():
-    cap = cv2.VideoCapture(0)
-    prev_time = 0
-    cur_time = 0
-    tracker = HandTracking()
-    while True:
-        success, img = cap.read()
-        img = tracker.draw_hands(img)
-        landmark_lst = tracker.find_lm_positions(img)
-        if landmark_lst:
-            gesture = identify_r_p_s(landmark_lst)
-            # blur_hand(img, landmark_lst)
-            cv2.putText(img, gesture, (100, 400), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
-        cur_time = time.time()
-        show_fps(img, cur_time, prev_time)
-        prev_time = cur_time
-        cv2.imshow("Image", img)
-        if cv2.waitKey(20) & 0xFF == ord('d'):
-            break
-
-
-if __name__ == "__main__":
-    main()

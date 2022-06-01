@@ -333,7 +333,7 @@ class GridLayoutApp(App):
         return buffer
 
     def decompress_img(self, buffer):
-        buffer = buffer.read()
+        buffer = BytesIO(buffer).read()
         buffer = numpy.frombuffer(buffer, dtype=numpy.byte)
         return cv2.imdecode(buffer, cv2.IMREAD_COLOR)
 

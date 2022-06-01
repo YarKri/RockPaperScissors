@@ -7,6 +7,11 @@ import logging
 import threading
 from game import Game
 import os
+
+import numpy
+import cv2
+from PIL import Image
+
 app = Flask(__name__)
 
 PORT = 8889
@@ -117,9 +122,7 @@ async def gme(websocket):
             countdown -= 1
             await websocket.send(countdown)
         else:
-            # img = await websocket.recv()
             img = message
-
             await game_lst[sid][1-pid][0].send(img)
             frame_counter += 1
 
