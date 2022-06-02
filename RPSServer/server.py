@@ -120,7 +120,7 @@ async def gme(websocket):
         elif frame_counter == 10:
             frame_counter = 0
             countdown -= 1
-            await websocket.send(countdown)
+            await websocket.send(str(countdown))
         else:
             img = message
             await game_lst[sid][1-pid][0].send(img)

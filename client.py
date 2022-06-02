@@ -234,6 +234,13 @@ class GridLayoutApp(App):
         self.layout_matrix[1][1].bind(on_press=self.play)
         self.layout_matrix[2][1].opacity = 1
 
+    def img_to_texture(self, frame):
+        buf1 = cv2.flip(frame, 0)
+        buf = buf1.tobytes()
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+        texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+        return texture
+
     def play(self, button=False):
         response = requests.get(f"{SERVER_URL}/play", params={"quit": False}).text
         sid = response
@@ -280,15 +287,16 @@ class GridLayoutApp(App):
                             cntdwn = 4
                         elif msg == "3":
                             cntdwn = 3
-                        if msg == "2":
+                        elif msg == "2":
                             cntdwn = 2
-                        if msg == "1":
+                        elif msg == "1":
                             cntdwn = 1
-                        if msg == "0":
+                        elif msg == "0":
                             break
                         else:
                             opp_img = self.decompress_img(msg)
-                            cv2.imshow("Rock Paper Scissors", opp_img)
+                            opp_img = self.img_to_texture(opp_img)
+                            self.layout_matrix[0][1].texture = opp_img
 
                     success, img = cap.read()
                     img = tracker.draw_hands(img)
@@ -306,10 +314,12 @@ class GridLayoutApp(App):
                     await ws.send(user)
                     winner = await ws.recv()
                     for frame in range(10):
-                        cv2.imshow("Rock Paper Scissors", opp_img)
+                        opp_img = self.img_to_texture(opp_img)
+                        self.layout_matrix[0][1].texture = opp_img
                     cv2.putText(opp_img, f'{winner} wins!', (10, 200), cv2.FONT_ITALIC, 4, (0, 0, 255), 5)
                     for frame in range(20):
-                        cv2.imshow("Rock Paper Scissors", opp_img)
+                        opp_img = self.img_to_texture(opp_img)
+                        self.layout_matrix[0][1].texture = opp_img
                     await ws.close()
         except Exception as e:
             print(e)
