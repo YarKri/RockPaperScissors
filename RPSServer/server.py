@@ -5,7 +5,6 @@ import time
 import asyncio
 import logging
 import threading
-from game import Game
 import os
 
 import numpy
@@ -126,31 +125,6 @@ async def gme(websocket):
             await game_lst[sid][1-pid][0].send(img)
             frame_counter += 1
 
-'''
-def handle_game(websocket):
-    global games
-    pid = 0
-    add = True
-    for gm in games:
-        if gm.state == 'Waiting for player 2.':
-            gm.player2_found(websocket)
-            add = False
-            break
-    if add:
-        games[Game(websocket)] = []
-        pid = 1
-    gm = find_game(websocket)
-    async for msg in websocket:
-        if gm.state == 'Game.':
-            games[gm].append(msg)
-            websocket.send(games[gm][pid])
-
-
-def find_game(websocket):
-    for gm in games:
-        if gm.contains(websocket):
-            return gm
-'''     # do not use?
 
 if __name__ == "__main__":
     game_lst = {}  # {sid: [[websocket1, gesture1, username1],[websocket2, gesture2, username2]]...}
