@@ -10,6 +10,7 @@ from kivy.uix.textinput import TextInput
 from kivy.graphics import Color, Rectangle
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
+import time
 import pygame
 import requests
 import websockets
@@ -23,7 +24,7 @@ import asyncio
 import threading
 import logging
 
-kivy.require('1.11.1')
+# kivy.require('1.11.1')
 pygame.mixer.init()
 
 SERVER_URL = "http://localhost:8889"
@@ -65,7 +66,8 @@ class MuteSwitch(GridLayout):
 class GridLayoutApp(App):
     def __init__(self):
         super().__init__()
-
+        self.frame = (0, 0)
+        self.last_time = 0
         self.layout = GridLayout(cols=3, rows=3)
         login_button = Button(text='Log In')
         login_button.bind(on_press=self.login_ui)
@@ -252,12 +254,20 @@ class GridLayoutApp(App):
         gme.start()
 
     def play_thread(self, sid):
+        Clock.schedule_interval(self.update_frame, 0.1)
         asyncio.run(self.game(sid))
 
-    def ui_game_start_thread(self):
+    def ui_game_start(self):
         self.layout_matrix[1][0].disabled = True
         self.layout_matrix[1][2].disabled = True
         self.layout_matrix[2][0].text = ""
+
+    def update_frame(self, dt):
+        tme = self.frame[0]
+        opp_img = self.frame[1]
+        if self.last_time != tme:
+            opp_img = self.img_to_texture(opp_img)
+            self.layout_matrix[0][1].texture = opp_img
 
     async def game(self, sid):
         try:
@@ -268,8 +278,7 @@ class GridLayoutApp(App):
                     blur = False
                     cntdwn = 5
                     logging.info("Game started")
-                    ui = threading.Thread(target=self.ui_game_start_thread)
-                    ui.start()
+                    self.ui_game_start()
                     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
                     tracker = HandTracking()
                     while True:
@@ -282,6 +291,7 @@ class GridLayoutApp(App):
                         img = self.compress_img(img)
                         await ws.send(img)
                         msg = await ws.recv()
+                        logging.info(f"MSG: {msg if len(msg) == 1 else 'image'}")
                         if msg == "4":
                             blur = True
                             cntdwn = 4
@@ -293,10 +303,10 @@ class GridLayoutApp(App):
                             cntdwn = 1
                         elif msg == "0":
                             break
-                        else:
+                        elif success:
                             opp_img = self.decompress_img(msg)
-                            opp_img = self.img_to_texture(opp_img)
-                            self.layout_matrix[0][1].texture = opp_img
+                            self.last_time = self.frame[0]
+                            self.frame = (int(time.time()*100), opp_img)
 
                     success, img = cap.read()
                     img = tracker.draw_hands(img)
@@ -313,18 +323,18 @@ class GridLayoutApp(App):
                     await ws.send(gesture)
                     await ws.send(user)
                     winner = await ws.recv()
-                    for frame in range(10):
-                        opp_img = self.img_to_texture(opp_img)
-                        self.layout_matrix[0][1].texture = opp_img
+                    self.last_time = self.frame[0]
+                    self.frame = (int(time.time() * 100), opp_img)
+                    await asyncio.sleep(1)
                     cv2.putText(opp_img, f'{winner} wins!', (10, 200), cv2.FONT_ITALIC, 4, (0, 0, 255), 5)
-                    for frame in range(20):
-                        opp_img = self.img_to_texture(opp_img)
-                        self.layout_matrix[0][1].texture = opp_img
+                    self.last_time = self.frame[0]
+                    self.frame = (int(time.time() * 100), opp_img)
+                    await asyncio.sleep(3)
                     await ws.close()
         except Exception as e:
             print(e)
             self.layout_matrix[2][0].text = " Error, try\r\nagain later."
-        await ws.close()
+        # await ws.close()
         self.layout_matrix[1][0].disabled = False
         self.layout_matrix[1][1].disabled = False
         self.layout_matrix[1][2].disabled = False
