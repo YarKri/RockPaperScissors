@@ -29,7 +29,6 @@ pygame.mixer.init()
 
 SERVER_URL = "http://localhost:8889"
 WEBSOCKET_SERVER_URL = "ws://localhost:8890"
-user = ''
 
 
 def play_music():
@@ -68,6 +67,7 @@ class GridLayoutApp(App):
         super().__init__()
         self.frame = (0, 0)
         self.last_time = 0
+        self.username = ""
         self.layout = GridLayout(cols=3, rows=3)
         login_button = Button(text='Log In')
         login_button.bind(on_press=self.login_ui)
@@ -92,8 +92,7 @@ class GridLayoutApp(App):
         return self.layout
 
     def login(self, label, popup, username, password):
-        global user
-        user = username
+        self.username = username
         not_allowed = ";=*!%^&()"
         for char in not_allowed:
             if char in password or char in username:
@@ -286,7 +285,7 @@ class GridLayoutApp(App):
                         landmark_lst = tracker.find_lm_positions(img)
                         if landmark_lst and blur:
                             RockPaperScissors.blur_hand(img, landmark_lst)
-                        RockPaperScissors.put_username("", img)
+                        RockPaperScissors.put_username(self.username, img)
                         RockPaperScissors.put_pos(cntdwn, img)
                         img = self.compress_img(img)
                         await ws.send(img)
@@ -321,15 +320,18 @@ class GridLayoutApp(App):
                     await ws.send(img)
                     opp_img = self.decompress_img(await ws.recv())
                     await ws.send(gesture)
-                    await ws.send(user)
+                    await ws.send(self.username)
                     winner = await ws.recv()
+                    if winner == self.username:
+                        color = (0, 255, 0)
+                    else:
+                        color = (255, 0, 255)
                     self.last_time = self.frame[0]
                     self.frame = (int(time.time() * 100), opp_img)
                     await asyncio.sleep(1)
-                    cv2.putText(opp_img, f'{winner} wins!', (10, 200), cv2.FONT_ITALIC, 4, (0, 0, 255), 5)
+                    cv2.putText(opp_img, f'{winner} wins!', (40, 200), cv2.FONT_ITALIC, 2, color, 5)
                     self.last_time = self.frame[0]
                     self.frame = (int(time.time() * 100), opp_img)
-                    await asyncio.sleep(3)
                     await ws.close()
         except Exception as e:
             print(e)

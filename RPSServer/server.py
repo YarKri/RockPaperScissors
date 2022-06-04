@@ -74,7 +74,7 @@ async def gme(websocket):
     global game_lst
     init = True
     frame_counter = 0
-    countdown = 4
+    countdown = 5
     async for message in websocket:
         if init:
             sid = message
@@ -88,8 +88,7 @@ async def gme(websocket):
                 pid = 1
             init = False
 
-        elif countdown == -1:
-            # img = await websocket.recv()
+        elif countdown == 0:
             img = message
             await game_lst[sid][1-pid][0].send(img)
 
@@ -97,7 +96,7 @@ async def gme(websocket):
             game_lst[sid][pid].append(gesture)
             username = await websocket.recv()
             game_lst[sid][pid].append(username)
-            opp_gesture = game_lst[sid][1-pid][1]
+            opp_gesture = game_lst[sid][1-pid][1]   # not synchronized!
             opp_username = game_lst[sid][1-pid][2]
 
             if gesture == opp_gesture:
