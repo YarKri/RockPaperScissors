@@ -68,6 +68,7 @@ class GridLayoutApp(App):
         self.frame = (0, 0)
         self.last_time = 0
         self.username = ""
+        self.clk = None
         self.layout = GridLayout(cols=3, rows=3)
         login_button = Button(text='Log In')
         login_button.bind(on_press=self.login_ui)
@@ -253,7 +254,7 @@ class GridLayoutApp(App):
         gme.start()
 
     def play_thread(self, sid):
-        Clock.schedule_interval(self.update_frame, 0.1)
+        self.clk = Clock.schedule_interval(self.update_frame, 0.1)
         asyncio.run(self.game(sid))
 
     def ui_game_start(self):
@@ -332,10 +333,12 @@ class GridLayoutApp(App):
                     self.last_time = self.frame[0]
                     self.frame = (int(time.time() * 100), opp_img)
                     await ws.close()
+
         except Exception as e:
             print(e)
             self.layout_matrix[2][0].text = " Error, try\r\nagain later."
-        # await ws.close()
+        time.sleep(1)
+        self.clk.cancel()
         self.layout_matrix[1][0].disabled = False
         self.layout_matrix[1][1].disabled = False
         self.layout_matrix[1][2].disabled = False
