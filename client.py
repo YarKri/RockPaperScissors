@@ -329,7 +329,7 @@ class GridLayoutApp(App):
                     self.last_time = self.frame[0]
                     self.frame = (int(time.time() * 100), opp_img)
                     await asyncio.sleep(1)
-                    cv2.putText(opp_img, f'{winner} wins!', (40, 200), cv2.FONT_ITALIC, 2, color, 5)
+                    cv2.putText(opp_img, f'{winner} wins!', (60, 200), cv2.FONT_ITALIC, 2, color, 5)
                     self.last_time = self.frame[0]
                     self.frame = (int(time.time() * 100), opp_img)
                     await ws.close()

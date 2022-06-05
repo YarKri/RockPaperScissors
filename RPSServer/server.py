@@ -70,6 +70,14 @@ async def start_websocket_server():
         await asyncio.Future()
 
 
+async def update_un_gest(fut, websocket, sid, pid, value):
+    gesture = await websocket.recv()
+    game_lst[sid][pid].append(gesture)
+    username = await websocket.recv()
+    game_lst[sid][pid].append(username)
+    fut.set_result(value)
+
+
 async def gme(websocket):
     global game_lst
     init = True
@@ -78,26 +86,27 @@ async def gme(websocket):
     async for message in websocket:
         if init:
             sid = message
+            loop = asyncio.get_running_loop()
             if sid not in game_lst:
-                game_lst[sid] = [[websocket]]
+                game_lst[sid] = [[websocket, loop.create_future()]]
                 pid = 0
             else:
-                game_lst[sid].append([websocket])
-                await game_lst[sid][0][0].send("start")
-                await game_lst[sid][1][0].send("start")
+                game_lst[sid].append([websocket, loop.create_future()])
+                await asyncio.gather(game_lst[sid][0][0].send("start"), game_lst[sid][1][0].send("start"))
                 pid = 1
             init = False
 
         elif countdown == 0:
             img = message
             await game_lst[sid][1-pid][0].send(img)
-
-            gesture = await websocket.recv()
-            game_lst[sid][pid].append(gesture)
-            username = await websocket.recv()
-            game_lst[sid][pid].append(username)
-            opp_gesture = game_lst[sid][1-pid][1]   # not synchronized!
-            opp_username = game_lst[sid][1-pid][2]
+            fut = game_lst[sid][pid][1]
+            await update_un_gest(fut, game_lst[sid][pid][0], sid, pid, True)
+            opp_fut = game_lst[sid][1 - pid][1]
+            await opp_fut
+            gesture = game_lst[sid][pid][2]
+            username = game_lst[sid][pid][3]
+            opp_gesture = game_lst[sid][1-pid][2]
+            opp_username = game_lst[sid][1-pid][3]
 
             if gesture == opp_gesture:
                 await websocket.send("Tie, nobody")
@@ -126,7 +135,7 @@ async def gme(websocket):
 
 
 if __name__ == "__main__":
-    game_lst = {}  # {sid: [[websocket1, gesture1, username1],[websocket2, gesture2, username2]]...}
+    game_lst = {}  # {sid: [[websocket1, future, gesture1, username1],[websocket2, future, gesture2, username2]]...}
     last_sid = None
     try:
         ws_server_thread = threading.Thread(target=thread_websocket_server)

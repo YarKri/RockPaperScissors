@@ -89,4 +89,4 @@ def put_pos(num, img):
         pos = "Scissors"
     else:
         pos = "Shoot!"
-    cv2.putText(img, pos, (img.shape[1]//2, img.shape[0]//2), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
+    cv2.putText(img, pos, (img.shape[1]//2 - 200, img.shape[0]//2), cv2.FONT_ITALIC, 3, (0, 0, 255), 5)
