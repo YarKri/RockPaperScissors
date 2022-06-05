@@ -319,8 +319,7 @@ class GridLayoutApp(App):
                     img = self.compress_img(img)
                     await ws.send(img)
                     opp_img = self.decompress_img(await ws.recv())
-                    await ws.send(gesture)
-                    await ws.send(self.username)
+                    await ws.send(gesture + "," + self.username)
                     winner = await ws.recv()
                     if winner == self.username:
                         color = (0, 255, 0)

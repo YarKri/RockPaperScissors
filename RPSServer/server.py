@@ -71,9 +71,10 @@ async def start_websocket_server():
 
 
 async def update_un_gest(fut, websocket, sid, pid, value):
-    gesture = await websocket.recv()
+    msg = await websocket.recv()
+    gesture = msg.split(',')[0]
+    username = msg.split(',')[1]
     game_lst[sid][pid].append(gesture)
-    username = await websocket.recv()
     game_lst[sid][pid].append(username)
     fut.set_result(value)
 
