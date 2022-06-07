@@ -367,6 +367,7 @@ class GridLayoutApp(App):
         """
         global user
         user = ''
+
         self.layout_matrix[0][2].text = ""
         self.layout_matrix[1][0].text = "Log In"
         self.layout_matrix[1][1].text = "Sign Up"
@@ -376,6 +377,7 @@ class GridLayoutApp(App):
         self.layout_matrix[1][1].bind(on_press=self.signup_ui)
         self.layout_matrix[2][0].text = ""
         self.layout_matrix[2][1].opacity = 0
+        self.layout_matrix[0][1].texture = self.img_to_texture(cv2.imread("RPCLogo1.png"))
 
     def quit_while_queueing(self, button=False):
         requests.get(f"{SERVER_URL}/play", params={"quit": True})

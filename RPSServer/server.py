@@ -39,7 +39,7 @@ def signup():
 
 
 @app.route('/play')
-def handle_play_request():
+async def handle_play_request():
     global last_sid
     global game_lst
     bool_quit = request.args.get('quit', '')
@@ -47,9 +47,9 @@ def handle_play_request():
     if bool_quit == 'True':
         app.logger.info(f'quit is True, removing {last_sid}')
         assert last_sid is not None
-        game_lst[last_sid][0][0].close()
+        await game_lst[last_sid][0][0].close()
         del game_lst[last_sid]
-        return
+        return Response(status=200)
     if last_sid in game_lst and len(game_lst[last_sid]) == 1:
         session_id = last_sid
         app.logger.info(f'Opponent matched to a waiting user, {last_sid=}, {session_id=}')
