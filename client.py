@@ -69,13 +69,14 @@ class GridLayoutApp(App):
         self.last_time = 0
         self.username = ""
         self.clk = None
+        self.in_queue = False
         self.layout = GridLayout(cols=3, rows=3)
         login_button = Button(text='Log In')
         login_button.bind(on_press=self.login_ui)
         signup_button = Button(text='Sign Up')
         signup_button.bind(on_press=self.signup_ui)
         quit_button = Button(text='Quit')
-        quit_button.bind(on_press=exit)
+        quit_button.bind(on_press=self.quit)
         self.layout_matrix = [[Label(), Image(source="RPCLogo1.png", size_hint=(1, 5)), Label(text_size=(200, 350), font_size=15, halign='right', valign='top', outline_color=(1, 1, 1, 1), outline_width=2, color=(0, 0, 0, 1))],
                               [login_button, signup_button, quit_button],
                               [Label(), Image(opacity=0, source="onlinelogo.png"), MuteSwitch()]]
@@ -246,10 +247,12 @@ class GridLayoutApp(App):
     def play(self, button=False):
         response = requests.get(f"{SERVER_URL}/play", params={"quit": False}).text
         sid = response
+        self.in_queue = True
         self.layout_matrix[2][0].text = "Searching for game..."
         self.layout_matrix[1][1].disabled = True
-        self.layout_matrix[1][0].bind(on_press=self.quit_while_queueing)
-        self.layout_matrix[1][2].bind(on_press=self.quit_while_queueing)
+        # self.layout_matrix[1][0].bind(on_press=self.quit_while_queueing)
+        # self.layout_matrix[1][2].bind(on_press=self.quit_while_queueing)
+
         gme = threading.Thread(target=self.play_thread, args=(sid,))
         gme.start()
 
@@ -275,6 +278,7 @@ class GridLayoutApp(App):
                 await ws.send(sid)
                 msg = await ws.recv()
                 if msg == "start":
+                    self.in_queue = False
                     blur = False
                     cntdwn = 5
                     logging.info("Game started")
@@ -342,8 +346,8 @@ class GridLayoutApp(App):
         self.layout_matrix[1][0].disabled = False
         self.layout_matrix[1][1].disabled = False
         self.layout_matrix[1][2].disabled = False
-        self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
-        self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
+       #  self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
+       #  self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
 
     def compress_img(self, cv_img, quality=95):
         buffer = BytesIO()
@@ -365,9 +369,11 @@ class GridLayoutApp(App):
         """
         Reverts UI to its original state (before user logged in).
         """
-        global user
-        user = ''
-
+        if self.in_queue:
+            self.clk.cancel()
+            requests.get(f"{SERVER_URL}/play", params={"quit": True})
+            self.in_queue = False
+        self.username = ''
         self.layout_matrix[0][2].text = ""
         self.layout_matrix[1][0].text = "Log In"
         self.layout_matrix[1][1].text = "Sign Up"
@@ -378,12 +384,17 @@ class GridLayoutApp(App):
         self.layout_matrix[2][0].text = ""
         self.layout_matrix[2][1].opacity = 0
         self.layout_matrix[0][1].texture = self.img_to_texture(cv2.imread("RPCLogo1.png"))
-
-    def quit_while_queueing(self, button=False):
-        requests.get(f"{SERVER_URL}/play", params={"quit": True})
-        self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
-        self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
+        # self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
+        # self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
         self.layout_matrix[1][1].disabled = False
+
+    def quit(self, button=False):
+        if self.in_queue:
+            requests.get(f"{SERVER_URL}/play", params={"quit": True})
+            self.clk.cancel()
+            #loop = asyncio.get_running_loop()
+            #loop.close()
+        self.stop()
 
 
 root = GridLayoutApp()
