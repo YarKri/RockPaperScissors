@@ -10,6 +10,7 @@ from kivy.uix.textinput import TextInput
 from kivy.graphics import Color, Rectangle
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
+from kivy.core.window import Window
 import time
 import pygame
 import requests
@@ -19,7 +20,6 @@ from io import BytesIO
 import numpy
 from handtracking import HandTracking
 import RockPaperScissors
-from kivy.core.window import Window
 import asyncio
 import threading
 import logging

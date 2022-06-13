@@ -55,5 +55,5 @@ class HandTracking(object):
             for id, lm in enumerate(results.multi_hand_landmarks[hand_number].landmark):
                 height, width, channel = img.shape
                 lm_x, lm_y = int(lm.x * width), int(lm.y * height)
-                landmark_lst.append([id, lm_x, lm_y, ])
+                landmark_lst.append([id, lm_x, lm_y])
         return landmark_lst

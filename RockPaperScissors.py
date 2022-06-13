@@ -1,6 +1,4 @@
 import cv2
-import time
-from handtracking import HandTracking
 from math import sqrt
 
 
@@ -47,24 +45,6 @@ def show_fps(img, cur_time, prev_time):
     """
     fps = 1 / (cur_time - prev_time)
     cv2.putText(img, "FPS: " + str(int(fps)), (10, 40), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
-
-
-def take_and_identify_snapshot():
-    """
-    Take a snap shot and identify a hand gesture in the image. Returns image with hand gesture written upon it and the
-    identified hand gesture. If no gesture was made, the gesture is saved as "No gesture was made!".
-    """
-    cap = cv2.VideoCapture(0)
-    success, img = cap.read()
-    tracker = HandTracking()
-    landmark_lst = tracker.find_lm_positions(img)
-    if landmark_lst:
-        gesture = identify_r_p_s(landmark_lst)
-        cv2.putText(img, gesture, (100, 400), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
-    else:
-        gesture = "No gesture was made!"
-        cv2.putText(img, gesture, (100, 400), cv2.FONT_ITALIC, 1, (0, 0, 255), 3)
-    return img, gesture
 
 
 def blur_hand(img, landmark_lst):
