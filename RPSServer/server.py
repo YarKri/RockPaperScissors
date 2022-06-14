@@ -52,7 +52,10 @@ async def handle_play_request():
         app.logger.info(f'quit is True, removing {last_sid}')
         # assert last_sid is not None
         loop = asyncio.get_running_loop()
-        loop.create_task(close_socket(game_lst[last_sid][0][0]))
+        try:
+            await loop.create_task(close_socket(game_lst[last_sid][0][0]))
+        except Exception as ex:
+            print(f'{ex}')
         del game_lst[last_sid]
         return Response(status=200)
     if last_sid in game_lst and len(game_lst[last_sid]) == 1:
@@ -129,7 +132,7 @@ async def gme(websocket):
                 await websocket.send(username)
                 database_functions.add_win(username)
 
-            await websocket.close()   # check
+            await websocket.close()
         elif frame_counter == 10:
             frame_counter = 0
             countdown -= 1

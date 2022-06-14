@@ -346,8 +346,6 @@ class GridLayoutApp(App):
         self.layout_matrix[1][0].disabled = False
         self.layout_matrix[1][1].disabled = False
         self.layout_matrix[1][2].disabled = False
-       #  self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
-       #  self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
 
     def compress_img(self, cv_img, quality=95):
         buffer = BytesIO()
@@ -384,16 +382,12 @@ class GridLayoutApp(App):
         self.layout_matrix[2][0].text = ""
         self.layout_matrix[2][1].opacity = 0
         self.layout_matrix[0][1].texture = self.img_to_texture(cv2.imread("RPCLogo1.png"))
-        # self.layout_matrix[1][0].unbind(on_press=self.quit_while_queueing)
-        # self.layout_matrix[1][2].unbind(on_press=self.quit_while_queueing)
         self.layout_matrix[1][1].disabled = False
 
     def quit(self, button=False):
         if self.in_queue:
             requests.get(f"{SERVER_URL}/play", params={"quit": True})
             self.clk.cancel()
-            #loop = asyncio.get_running_loop()
-            #loop.close()
         self.stop()
 
 
