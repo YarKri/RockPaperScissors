@@ -95,7 +95,7 @@ class GridLayoutApp(App):
 
     def login(self, label, popup, username, password):
         self.username = username
-        not_allowed = ";=*!%^&()"
+        not_allowed = ";=*!%^&()<>"
         for char in not_allowed:
             if char in password or char in username:
                 label.text = "Wrong password or username."
@@ -150,7 +150,7 @@ class GridLayoutApp(App):
 
     def signup(self, label, inputs, username, password, verification, email):
         label.color = (1, 0, 0, 1)
-        not_allowed = ";=*!%^&()"
+        not_allowed = ";=*!%^&()<>"
         for char in not_allowed:
             if char in password or char in username or char in email:
                 label.text = "Password, email or username must \r\n   only contain allowed characters."
