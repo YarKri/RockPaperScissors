@@ -58,3 +58,10 @@ def add_loss(username):
         cur = conn.cursor()
         cur.execute(f"UPDATE users SET losses = losses + 1 WHERE username = '{username}'")
         conn.commit()
+
+
+def del_user(username):
+    with sqlite3.connect('rpc_database.db') as conn:
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM users WHERE username = '{username}'")
+        conn.commit()
