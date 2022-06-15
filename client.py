@@ -152,8 +152,8 @@ class GridLayoutApp(App):
         label.color = (1, 0, 0, 1)
         not_allowed = ";=*!%^&()"
         for char in not_allowed:
-            if char in password or char in username:
-                label.text = "Password or username must only\r\n     contain allowed characters."
+            if char in password or char in username or char in email:
+                label.text = "Password, email or username must \r\n   only contain allowed characters."
                 return
         if len(email) == 0 or len(password) == 0 or len(verification) == 0 or len(username) == 0:
             label.text = "Please enter all of the information."
