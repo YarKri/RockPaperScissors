@@ -34,20 +34,6 @@ WEBSOCKET_SERVER_URL = "ws://localhost:8890"
 # SERVER_URL = "http://10.100.102.54:8889 "
 # WEBSOCKET_SERVER_URL = "ws://10.100.102.54:8890"
 
-def play_music():
-    """
-    Play theme song.
-    """
-    pygame.mixer.music.load("Soviet_Connection_(Theme_from[1]-[AudioTrimmer.com].mp3")
-    pygame.mixer.music.play(-1)
-
-
-def stop_music():
-    """
-    Stop playing theme song.
-    """
-    pygame.mixer.music.stop()
-
 
 class MuteSwitch(GridLayout):
     def __init__(self, **kwargs):
@@ -60,12 +46,25 @@ class MuteSwitch(GridLayout):
 
     def switch_callback(self, switch_object, switch_value):
         if switch_value:
-            stop_music()
+            self.stop_music()
         else:
-            play_music()
+            self.play_music()
+
+    def play_music(self):
+        """
+        Play theme song.
+        """
+        pygame.mixer.music.load("Soviet_Connection_(Theme_from[1]-[AudioTrimmer.com].mp3")
+        pygame.mixer.music.play(-1)
+
+    def stop_music(self):
+        """
+        Stop playing theme song.
+        """
+        pygame.mixer.music.stop()
 
 
-class GridLayoutApp(App):
+class ClientGridLayoutApp(App):
     def __init__(self):
         super().__init__()
         self.frame = (0, 0)
@@ -402,6 +401,6 @@ class GridLayoutApp(App):
         self.stop()
 
 
-root = GridLayoutApp()
-play_music()
+root = ClientGridLayoutApp()
+root.layout_matrix[2][2].play_music()
 root.run()
