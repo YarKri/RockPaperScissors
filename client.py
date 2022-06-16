@@ -1,4 +1,3 @@
-import kivy
 from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.image import Image
@@ -23,6 +22,8 @@ import RockPaperScissors
 import asyncio
 import threading
 import logging
+# from random import choice
+import hashlib
 
 # kivy.require('1.11.1')
 pygame.mixer.init()
@@ -30,6 +31,8 @@ pygame.mixer.init()
 SERVER_URL = "http://localhost:8889"
 WEBSOCKET_SERVER_URL = "ws://localhost:8890"
 
+# SERVER_URL = "http://10.100.102.54:8889 "
+# WEBSOCKET_SERVER_URL = "ws://10.100.102.54:8890"
 
 def play_music():
     """
@@ -104,6 +107,8 @@ class GridLayoutApp(App):
             label.text = "Please enter all of your information."
         else:
             try:
+                password = password.encode()
+                password = hashlib.sha256(password).hexdigest()
                 response = requests.get(f"{SERVER_URL}/login", params={"user": username, "password": password})
                 if response.status_code == 404:
                     label.text = "Incorrect password or username."
@@ -165,6 +170,12 @@ class GridLayoutApp(App):
             label.text = "Username must be 3-10 characters long."
         else:
             try:
+                # pepper_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                # pepper = choice(pepper_chars)
+                # password += pepper
+                # print(password)
+                password = password.encode()
+                password = hashlib.sha256(password).hexdigest()
                 response = requests.get(f"{SERVER_URL}/signup", params={"user": username, "password": password, "email":
                                         email})
                 if response.status_code == 200:

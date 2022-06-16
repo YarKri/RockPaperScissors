@@ -11,7 +11,7 @@ def get_length(x1, y1, x2, y2):
 
 def identify_r_p_s(landmark_lst):
     """
-    Checks the state of the ring, index and middle finger. Returns rock if all are closed, papper if all are open, and
+    Checks the state of the ring, index and middle finger. Returns rock if all are closed, paper if all are open, and
     scissors if only the middle and index finger are open.
     :param landmark_lst: A list of hand landmarks.
     """

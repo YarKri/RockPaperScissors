@@ -5,11 +5,7 @@ import time
 import asyncio
 import logging
 import threading
-import os
 
-import numpy
-import cv2
-from PIL import Image
 
 app = Flask(__name__)
 
@@ -33,6 +29,7 @@ def signup():
     user = request.args.get('user', '')
     password = request.args.get('password', '')
     email = request.args.get('email', '')
+    logging.info(f'Sign request for new user: {user}')
     if not database_functions.signup(user, password, email):
         return Response("Username already taken.", status=400)
     return Response(status=200)
