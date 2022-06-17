@@ -30,13 +30,15 @@ import hashlib
 # kivy.require('1.11.1')
 pygame.mixer.init()
 
-SERVER_URL = "http://localhost:8889"
-WEBSOCKET_SERVER_URL = "ws://localhost:8890"
 # SERVER_URL = settings.get("SERVER_URL", "http://localhost:8889")
 # WEBSOCKET_SERVER_URL = settings.get("WEBSOCKET_SERVER_URL", "ws://localhost:8890")
 
+
 # SERVER_URL = "http://10.100.102.54:8889 "
 # WEBSOCKET_SERVER_URL = "ws://10.100.102.54:8890"
+
+SERVER_URL = "http://yardenik.pythonanywhere.com:80"
+WEBSOCKET_SERVER_URL = "ws://yardenik.pythonanywhere:8890"
 
 
 class MuteSwitch(GridLayout):
