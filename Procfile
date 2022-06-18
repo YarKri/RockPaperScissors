@@ -1,1 +1,1 @@
-python RPSServer/server.py
+web: python RPSServer/server.py
