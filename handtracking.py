@@ -3,7 +3,7 @@ import mediapipe as mp
 
 
 class HandTracking(object):
-    def __init__(self, static_image_mode=False, max_num_hands=2, model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5):
+    def __init__(self, static_image_mode=False, max_num_hands=1, model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5):
         """
         Initializes the MediaPipe drawing_utils solution and the Hands class from the hands solution based on the input
         or default parameters:
